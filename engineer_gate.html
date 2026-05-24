@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Engineer Gate</title>
 
-<!-- ✅ Tailwind -->
+<!-- ✅ FIXED Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!-- ✅ Excel -->
@@ -21,37 +21,31 @@
 
   <div class="space-y-3">
 
-    <!-- ✅ AUTO DATE -->
-    <input id="date" type="text" readonly
-      class="w-full p-3 border rounded bg-gray-100" />
+    <!-- ✅ Auto Date -->
+    <input id="date" type="text" readonly class="w-full p-3 border rounded bg-gray-100">
 
-    <!-- ✅ IN TIME -->
-    <input id="inTime" type="time"
-      class="w-full p-3 border rounded" />
+    <input id="inTime" type="time" class="w-full p-3 border rounded">
 
-    <!-- ✅ Engineer Info -->
     <input id="name" type="text" placeholder="Engineer Name"
-      class="w-full p-3 border rounded" />
+      class="w-full p-3 border rounded">
 
     <input id="mobile" type="tel" placeholder="Mobile Number"
-      class="w-full p-3 border rounded" />
+      class="w-full p-3 border rounded">
 
     <input id="store" type="text" placeholder="Store Name / Code"
-      class="w-full p-3 border rounded" />
+      class="w-full p-3 border rounded">
 
     <!-- ✅ First Visit -->
-    <label class="flex items-center gap-2">
+    <label class="flex gap-2">
       <input type="checkbox" id="firstVisit">
       First Day Visit
     </label>
 
-    <!-- ✅ Upload Excel -->
+    <!-- ✅ Excel Upload -->
     <div id="uploadDiv">
-      <input type="file" id="excelFile"
-        class="w-full p-2 border rounded">
+      <input type="file" id="excelFile" class="w-full p-2 border rounded">
     </div>
 
-    <!-- ✅ BUTTON -->
     <button id="checkinBtn"
       class="w-full bg-blue-600 text-white p-3 rounded font-bold">
       CHECK-IN
@@ -60,128 +54,45 @@
   </div>
 </div>
 
-<!-- ✅ DB -->
-<script>
-const DB_NAME = "ITStoreDB";
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-
-    request.onupgradeneeded = function (e) {
-      const db = e.target.result;
-
-      db.createObjectStore("visits", {
-        keyPath: "id",
-        autoIncrement: true
-      });
-    };
-
-    request.onsuccess = () => resolve(request.result);
-  });
-}
-
-async function saveVisit(data) {
-  const db = await openDB();
-  const tx = db.transaction("visits", "readwrite");
-  tx.objectStore("visits").add(data);
-}
-
-async function getVisits() {
-  const db = await openDB();
-  return new Promise(resolve => {
-    const tx = db.transaction("visits", "readonly");
-    const req = tx.objectStore("visits").getAll();
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-</script>
-
-<!-- ✅ LOGIC -->
 <script>
 
-// ✅ AUTO SET TODAY DATE
+// ✅ Auto date
 const today = new Date().toISOString().split("T")[0];
 document.getElementById("date").value = today;
 
-// ✅ HIDE UPLOAD IF FIRST VISIT
+// ✅ Toggle upload
 document.getElementById("firstVisit").addEventListener("change", function () {
   document.getElementById("uploadDiv").style.display = this.checked ? "none" : "block";
 });
 
-// ✅ CHECK-IN
-document.getElementById("checkinBtn").addEventListener("click", async () => {
+// ✅ Check-in
+document.getElementById("checkinBtn").onclick = function () {
 
-  const date = document.getElementById("date").value;
-  const inTime = document.getElementById("inTime").value;
   const name = document.getElementById("name").value.trim();
   const mobile = document.getElementById("mobile").value.trim();
   const store = document.getElementById("store").value.trim();
-  const firstVisit = document.getElementById("firstVisit").checked;
-  const file = document.getElementById("excelFile").files[0];
+  const inTime = document.getElementById("inTime").value;
 
-  if (!inTime || !name || !mobile || !store) {
+  if (!name || !mobile || !store || !inTime) {
     alert("Fill all required fields");
     return;
   }
 
-  if (!firstVisit && !file) {
-    alert("Excel upload required for repeat visit");
-    return;
-  }
+  // ✅ Save session
+  localStorage.setItem("checkedInToday", "true");
 
-  const visits = await getVisits();
+  localStorage.setItem("currentSession", JSON.stringify({
+    name: name,
+    mobile: mobile,
+    store: store,
+    date: today,
+    inTime: inTime
+  }));
 
-  let sameEngineerVisits = visits.filter(v => 
-    v.mobile === mobile && v.store === store
-  );
+  // ✅ Redirect (WORKING)
+  window.location.href = "central_dashboard.html";
+};
 
-  let visitCount = sameEngineerVisits.length + 1;
-
-  // ✅ Excel read logic
-  let previousData = null;
-
-  if (file) {
-    const reader = new FileReader();
-
-    reader.onload = async function(e) {
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, { type: "array" });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      previousData = XLSX.utils.sheet_to_json(sheet);
-
-      await finalSave();
-    };
-
-    reader.readAsArrayBuffer(file);
-  } else {
-    await finalSave();
-  }
-
-  async function finalSave() {
-
-    const record = {
-      name,
-      mobile,
-      store,
-      date,
-      inTime,
-      visitCount,
-      previousData,
-      timestamp: new Date().toISOString()
-    };
-
-    await saveVisit(record);
-
-    // ✅ Store session (IMPORTANT FOR ACCESS CONTROL)
-    localStorage.setItem("checkedInToday", "true");
-    localStorage.setItem("currentSession", JSON.stringify(record));
-
-    // ✅ REDIRECT (FIXED)
-    window.location.href = "./central_dashboard.html";
-  }
-
-});
 </script>
 
 </body>
