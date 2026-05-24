@@ -1,0 +1,11 @@
+<!DOCTYPE html><html><body><h2>Engineer Gate</h2>
+<input placeholder='Engineer Name'><br><input placeholder='Employee ID'><br>
+<input placeholder='City'><br><button id='save'>Check In</button>
+<script src='js/db.js'></script>
+<script>
+document.getElementById('save').onclick=async()=>{
+let data={type:'checkin',time:new Date().toISOString()};
+document.querySelectorAll('input').forEach(i=>data[i.placeholder]=i.value);
+await saveRecord(data);localStorage.setItem('session',JSON.stringify(data));
+location='dashboard.html';}
+</script></body></html>

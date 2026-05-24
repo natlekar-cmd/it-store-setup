@@ -1,0 +1,13 @@
+<!DOCTYPE html><html><body>
+<h2>Checklist</h2>
+<label><input type='checkbox'>Network Ready</label><br>
+<label><input type='checkbox'>Power Ready</label><br>
+<button id='save'>Save</button>
+<script src='js/db.js'></script>
+<script>
+document.getElementById('save').onclick=async()=>{
+let list=[];document.querySelectorAll('input[type=checkbox]').forEach(c=>{
+list.push({item:c.parentElement.innerText,checked:c.checked});});
+await saveRecord({type:'checklist',list,time:new Date().toISOString()});
+alert('Saved');}
+</script></body></html>
