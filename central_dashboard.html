@@ -5,111 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
 
-<!-- ✅ FIXED Tailwind CDN -->
-<script src="ailwindcss.com
+<!-- ✅ CORRECT Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
 
 </head>
 
-<body class="bg-[#f8f9ff] text-gray-800">
+<body class="bg-gray-100">
 
-<!-- ✅ HEADER -->
-<header class="fixed top-0 w-full bg-white border-b p-3 flex justify-between items-center z-50">
-  <h1 class="font-bold text-lg text-blue-700">IT Store Setup Pro</h1>
-</header>
+<!-- HEADER -->
+<div class="bg-white p-4 shadow text-center font-bold text-blue-600">
+  IT Store Setup Dashboard
+</div>
 
-<!-- ✅ MAIN CONTENT -->
-<main class="pt-16 px-4 max-w-md mx-auto">
+<!-- CONTENT -->
+<div class="p-4 max-w-md mx-auto">
 
-  <!-- ✅ PROGRESS -->
-  <div class="bg-white p-5 rounded-xl shadow text-center mb-5">
-    <p class="text-sm text-gray-500">Total Progress</p>
-    <div class="text-3xl font-bold text-blue-700 mt-2">64%</div>
+  <!-- Progress -->
+  <div class="bg-white p-4 rounded shadow text-center mb-4">
+    <p class="text-gray-500">Progress</p>
+    <h2 class="text-2xl font-bold text-blue-600">64%</h2>
   </div>
 
-  <!-- ✅ ENGINEER INFO -->
-  <div class="bg-blue-600 text-white p-4 rounded-xl mb-5">
-    <p><b>Engineer:</b> <span id="engName">-</span></p>
-    <p><b>Store:</b> <span id="storeName">-</span></p>
+  <!-- Engineer Info -->
+  <div class="bg-blue-600 text-white p-4 rounded mb-4">
+    <p><b>Engineer:</b> <span id="name">-</span></p>
+    <p><b>Store:</b> <span id="store">-</span></p>
   </div>
 
-  <!-- ✅ MODULE CARDS -->
-  <div class="space-y-4">
+  <!-- Button -->
+  <button onclick="goNext()"
+    class="w-full bg-white p-4 rounded shadow flex justify-between items-center">
+    <span>Site Readiness</span>
+    ➝
+  </button>
 
-    <button onclick="goToReadiness()"
-      class="w-full p-4 bg-white rounded-xl shadow flex justify-between items-center">
-      <div>
-        <h3 class="font-bold">Site Readiness</h3>
-        <p class="text-sm text-gray-500">75% Complete</p>
-      </div>
-      ➝
-    </button>
+</div>
 
-    <div class="w-full p-4 bg-white rounded-xl shadow flex justify-between items-center opacity-60">
-      <div>
-        <h3 class="font-bold">IT Asset Delivery</h3>
-        <p class="text-sm text-gray-500">Locked</p>
-      </div>
-    </div>
-
-    <div class="w-full p-4 bg-white rounded-xl shadow flex justify-between items-center opacity-60">
-      <div>
-        <h3 class="font-bold">Physical Setup</h3>
-        <p class="text-sm text-gray-500">Locked</p>
-      </div>
-    </div>
-
-  </div>
-
-</main>
-
-<!-- ✅ EXPORT BUTTON -->
-<button onclick="exportExcel()" 
-class="fixed bottom-24 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow">
-Export Excel
-</button>
-
-<!-- ✅ NAVIGATION -->
-<nav class="fixed bottom-0 w-full bg-white border-t flex justify-around py-2">
-  <div class="text-blue-600 font-bold">Dashboard</div>
-  <div class="text-gray-400">Modules</div>
-  <div class="text-gray-400">History</div>
-</nav>
-
-<!-- ✅ DB SCRIPT -->
-<script src="js/db.js-- ✅ Excel -->
+<!-- ✅ SCRIPTS -->
+<script src="js/db.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <script>
-// ✅ Load session data
-const session = JSON.parse(localStorage.getItem("currentSession"));
 
-if (session) {
-  document.getElementById("engName").innerText = session.name || "-";
-  document.getElementById("storeName").innerText = session.store || "-";
+// ✅ Load data
+try {
+  const session = JSON.parse(localStorage.getItem("currentSession"));
+  if (session) {
+    document.getElementById("name").innerText = session.name || "-";
+    document.getElementById("store").innerText = session.store || "-";
+  }
+} catch (e) {
+  console.log("No session");
 }
 
 // ✅ Navigation
-function goToReadiness() {
+function goNext() {
   window.location.href = "site_readiness.html";
 }
 
-// ✅ Export Excel
-async function exportExcel() {
-  const db = await openDB();
-  const tx = db.transaction("records", "readonly");
-  const store = tx.objectStore("records");
-  const req = store.getAll();
-
-  req.onsuccess = function () {
-    const data = req.result;
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(wb, ws, "Data");
-    XLSX.writeFile(wb, "site_data.xlsx");
-  };
-}
 </script>
+
 </body>
 </html>
