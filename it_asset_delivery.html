@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<title>Asset Delivery</title>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+<h2 class="text-lg font-bold mb-4">IT Asset Delivery</h2>
+
+<div class="space-y-3">
+
+<label><input type="checkbox"> Server Rack Delivered</label><br>
+<label><input type="checkbox"> Switch Delivered</label><br>
+<label><input type="checkbox"> POS Delivered</label><br>
+<label><input type="checkbox"> Camera Installed</label><br>
+
+</div>
+
+<button onclick="saveAssetProgress()"
+class="mt-5 w-full bg-blue-600 text-white p-3 rounded">
+SAVE
+</button>
+
+<script>
+
+// ✅ SAVE PROGRESS
+function saveAssetProgress() {
+
+  let total = document.querySelectorAll("input[type=checkbox]").length;
+  let checked = document.querySelectorAll("input[type=checkbox]:checked").length;
+
+  let percent = Math.round((checked / total) * 100);
+
+  localStorage.setItem("assetProgress", percent);
+
+  alert("Asset Progress Saved: " + percent + "%");
+}
+
+</script>
+
+</body>
+</html>
