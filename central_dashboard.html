@@ -5,105 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
 
-<!-- ✅ Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-[#f8f9ff]">
 
-<!-- ✅ BLOCK ACCESS IF NOT CHECKED IN -->
 <script>
+// ✅ BLOCK WITHOUT CHECKIN
 if (!localStorage.getItem("checkedInToday")) {
-  alert("Please check-in first");
   window.location.href = "engineer_gate.html";
 }
 </script>
 
-<!-- HEADER -->
-<div class="bg-white p-4 text-center font-bold text-blue-600 shadow">
-  IT Store Setup Dashboard
+<div class="p-4 text-center font-bold text-blue-700 text-lg shadow bg-white">
+  IT Store Setup Pro
 </div>
 
-<!-- CONTENT -->
 <div class="p-4 max-w-md mx-auto">
 
-  <!-- Engineer Info -->
-  <div class="bg-blue-600 text-white p-4 rounded mb-4">
+  <!-- ✅ PROGRESS -->
+  <div class="bg-white p-5 rounded-xl shadow text-center mb-5">
+    <p class="text-gray-500">Total Progress</p>
+    <h2 id="progressText" class="text-3xl font-bold text-blue-700">0%</h2>
+  </div>
+
+  <!-- ✅ ENGINEER INFO -->
+  <div class="bg-blue-600 text-white p-4 rounded-xl mb-4">
     <p><b>Engineer:</b> <span id="name"></span></p>
     <p><b>Store:</b> <span id="store"></span></p>
   </div>
 
-  <!-- Button -->
-  <button onclick="goNext()"
-    class="w-full bg-white p-4 rounded shadow flex justify-between">
-    <span>Site Readiness</span>
-    ➝
+  <!-- ✅ MODULES -->
+  <button onclick="goReadiness()" class="w-full p-4 bg-white rounded-xl shadow mb-3">
+    Site Readiness
+  </button>
+
+  <button onclick="goAssets()" class="w-full p-4 bg-white rounded-xl shadow mb-3">
+    IT Asset Delivery
   </button>
 
 </div>
 
 <script>
 
-// ✅ Load session
+// ✅ LOAD SESSION
 const session = JSON.parse(localStorage.getItem("currentSession"));
-
 if (session) {
-  document.getElementById("name").innerText = session.name;
-  document.getElementById("store").innerText = session.store;
+  document.getElementById("name").innerText = session.name || "";
+  document.getElementById("store").innerText = session.store || "";
 }
 
-// ✅ Navigation
-function goNext() {
-  window.location.href = "site_readiness.html";
-}
+// ✅ LOAD PROGRESS
+function loadProgress() {
 
-</script>
-<script>
-
-// ✅ Get progress data
-function getProgress() {
-  let sr = JSON.parse(localStorage.getItem("siteReadinessProgress")) || 0;
-  let asset = JSON.parse(localStorage.getItem("assetProgress")) || 0;
+  let sr = parseInt(localStorage.getItem("siteReadinessProgress")) || 0;
+  let asset = parseInt(localStorage.getItem("assetProgress")) || 0;
 
   let total = Math.round((sr + asset) / 2);
 
-  return total;
+  document.getElementById("progressText").innerText = total + "%";
 }
 
-// ✅ Update UI on load
-window.onload = function () {
+loadProgress();
 
-  const progress = getProgress();
+// ✅ NAVIGATION
+function goReadiness() {
+  window.location.href = "site_readiness.html";
+}
 
-  // Update percentage text
-  document.querySelectorAll("span").forEach(el => {
-    if (el.innerText.includes("%")) {
-      el.innerText = progress + "%";
-    }
-  });
-
-  // Update circular progress
-  const circle = document.getElementById("mainProgress");
-
-  if (circle) {
-    const radius = circle.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (progress / 100) * circumference;
-
-    circle.style.strokeDashoffset = offset;
-  }
-
-  // ✅ Load engineer info
-  const session = JSON.parse(localStorage.getItem("currentSession"));
-
-  if (session) {
-    document.body.innerHTML = document.body.innerHTML
-      .replace("John Doe", session.name || "")
-      .replace("#501 NY", session.store || "");
-  }
-};
+function goAssets() {
+  window.location.href = "it_asset_delivery.html";
+}
 
 </script>
+
 </body>
 </html>
