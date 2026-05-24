@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,7 @@
 <!-- ✅ Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- ✅ Excel Library -->
+<!-- ✅ Excel -->
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 </head>
@@ -17,51 +18,35 @@
 
 <div class="w-full max-w-md bg-white p-6 rounded-lg shadow">
 
-  <h2 class="text-xl font-bold text-center mb-5">Engineer Check-In</h2>
+  <h2 class="text-xl font-bold text-center mb-4">Engineer Check-In</h2>
 
-  <!-- ✅ FORM -->
-  <div class="space-y-4">
+  <div class="space-y-3">
 
+    <!-- ✅ Date -->
+    <input id="date" type="date" class="w-full p-3 border rounded" />
+
+    <!-- ✅ In Time -->
+    <input id="inTime" type="time" class="w-full p-3 border rounded" />
+
+    <!-- ✅ Engineer Details -->
     <input id="name" type="text" placeholder="Engineer Name"
       class="w-full p-3 border rounded" />
 
     <input id="mobile" type="tel" placeholder="Mobile Number"
       class="w-full p-3 border rounded" />
 
-    <input id="city" type="text" placeholder="City"
-      class="w-full p-3 border rounded" />
-
     <input id="store" type="text" placeholder="Store Name / Code"
       class="w-full p-3 border rounded" />
 
-    <select id="project" class="w-full p-3 border rounded">
-      <option value="">Select Project</option>
-      <option>New Store Setup</option>
-      <option>Store Closure</option>
-      <option>Refit</option>
-    </select>
-
-    <!-- ✅ First Visit -->
+    <!-- ✅ First Visit Toggle -->
     <label class="flex items-center gap-2">
       <input type="checkbox" id="firstVisit">
       First Day Visit
     </label>
 
-    <!-- ✅ IN TIME -->
-    <div>
-      <label class="text-sm">In Time</label>
-      <input type="time" id="inTime" class="w-full p-3 border rounded">
-    </div>
-
-    <!-- ✅ OUT TIME -->
-    <div>
-      <label class="text-sm">Out Time</label>
-      <input type="time" id="outTime" class="w-full p-3 border rounded">
-    </div>
-
     <!-- ✅ Upload Excel -->
-    <div>
-      <label class="text-sm font-bold">Upload Previous Status (Excel)</label>
+    <div id="uploadDiv">
+      <label class="text-sm">Upload Previous Status</label>
       <input type="file" id="excelFile" accept=".xlsx, .xls"
         class="w-full p-2 border rounded">
     </div>
@@ -78,14 +63,16 @@
 <!-- ✅ IndexedDB -->
 <script>
 const DB_NAME = "ITStoreDB";
-const STORE_NAME = "records";
 
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
 
     request.onupgradeneeded = function (e) {
-      e.target.result.createObjectStore(STORE_NAME, {
+      const db = e.target.result;
+
+      // ✅ Visit table
+      db.createObjectStore("visits", {
         keyPath: "id",
         autoIncrement: true
       });
@@ -96,94 +83,108 @@ function openDB() {
   });
 }
 
-async function saveRecord(data) {
+// ✅ Get all visits
+async function getAllVisits() {
   const db = await openDB();
-  const tx = db.transaction(STORE_NAME, "readwrite");
-  tx.objectStore(STORE_NAME).add(data);
-}
-
-async function getAllRecords() {
-  const db = await openDB();
-  return new Promise(resolve => {
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const req = tx.objectStore(STORE_NAME).getAll();
+  return new Promise((resolve) => {
+    const tx = db.transaction("visits", "readonly");
+    const req = tx.objectStore("visits").getAll();
     req.onsuccess = () => resolve(req.result);
   });
 }
+
+// ✅ Save visit
+async function saveVisit(data) {
+  const db = await openDB();
+  const tx = db.transaction("visits", "readwrite");
+  tx.objectStore("visits").add(data);
+}
 </script>
 
-<!-- ✅ MAIN LOGIC -->
+<!-- ✅ UI Logic -->
 <script>
+
+// ✅ Hide upload if first visit
+document.getElementById("firstVisit").addEventListener("change", function () {
+  document.getElementById("uploadDiv").style.display = this.checked ? "none" : "block";
+});
+
+// ✅ Check-In Logic
 document.getElementById("checkinBtn").addEventListener("click", async () => {
 
+  const date = document.getElementById("date").value;
+  const inTime = document.getElementById("inTime").value;
   const name = document.getElementById("name").value.trim();
   const mobile = document.getElementById("mobile").value.trim();
-  const city = document.getElementById("city").value.trim();
   const store = document.getElementById("store").value.trim();
-  const project = document.getElementById("project").value;
   const firstVisit = document.getElementById("firstVisit").checked;
-  const inTime = document.getElementById("inTime").value;
-  const outTime = document.getElementById("outTime").value;
+  const file = document.getElementById("excelFile").files[0];
 
-  if (!name || !mobile) {
-    alert("Please fill Name & Mobile");
+  if (!date || !inTime || !name || !mobile) {
+    alert("Fill Date, Time, Name & Mobile");
     return;
   }
 
-  let visitCount = 1;
-  let previousData = null;
+  // ✅ Validation
+  if (!firstVisit && !file) {
+    alert("Please upload previous Excel file for non-first visit");
+    return;
+  }
 
-  // ✅ Handle Excel Upload
-  const file = document.getElementById("excelFile").files[0];
+  // ✅ Get previous visits count
+  const visits = await getAllVisits();
+
+  let visitCount = 1;
+
+  if (visits.length > 0) {
+    const sameEngineer = visits.filter(v => v.mobile === mobile && v.store === store);
+    visitCount = sameEngineer.length + 1;
+  }
+
+  // ✅ Handle Excel
+  let previousData = null;
 
   if (file) {
     const reader = new FileReader();
 
-    reader.onload = async function(e) {
-
+    reader.onload = async function (e) {
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
+      const wb = XLSX.read(data, { type: "array" });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      previousData = XLSX.utils.sheet_to_json(sheet);
 
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-      previousData = jsonData;
-
-      visitCount = jsonData.length + 1;
-
-      await proceedSave(visitCount, previousData);
+      await finalSave();
     };
 
     reader.readAsArrayBuffer(file);
-
   } else {
-    await proceedSave(visitCount, previousData);
+    await finalSave();
   }
 
-  async function proceedSave(visitCount, previousData) {
+  // ✅ Final Save Function
+  async function finalSave() {
 
     const record = {
-      type: "engineer_visit",
-      name,
-      mobile,
-      city,
-      store,
-      project,
-      firstVisit,
-      inTime,
-      outTime,
-      visitCount,
-      previousData,
+      engineer: name,
+      mobile: mobile,
+      store: store,
+      date: date,
+      inTime: inTime,
+      firstVisit: firstVisit,
+      visitCount: visitCount,
+      previousData: previousData,
       timestamp: new Date().toISOString()
     };
 
-    await saveRecord(record);
+    await saveVisit(record);
 
+    // ✅ Save session
     localStorage.setItem("currentSession", JSON.stringify(record));
 
     // ✅ Redirect
     window.location.href = "central_dashboard.html";
   }
+
 });
 </script>
 
