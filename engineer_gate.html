@@ -1,11 +1,118 @@
-<!DOCTYPE html><html><body><h2>Engineer Gate</h2>
-<input placeholder='Engineer Name'><br><input placeholder='Employee ID'><br>
-<input placeholder='City'><br><button id='save'>Check In</button>
-<script src='js/db.js'></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engineer Gate</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body class="bg-gray-100">
+
+<div class="max-w-md mx-auto mt-10 bg-white p-6 rounded-lg shadow">
+
+  <h2 class="text-xl font-bold text-center mb-4">Engineer Check-In</h2>
+
+  <!-- Form -->
+  <div class="space-y-4">
+
+    <input id="name" type="text" placeholder="Engineer Name"
+      class="w-full p-3 border rounded" />
+
+    <input id="empId" type="text" placeholder="Employee ID"
+      class="w-full p-3 border rounded" />
+
+    <input id="city" type="text" placeholder="City"
+      class="w-full p-3 border rounded" />
+
+    <input id="store" type="text" placeholder="Store Name / Code"
+      class="w-full p-3 border rounded" />
+
+    <select id="project" class="w-full p-3 border rounded">
+      <option value="">Select Project</option>
+      <option>New Store Setup</option>
+      <option>Migration</option>
+      <option>Upgrade</option>
+    </select>
+
+    <!-- Button -->
+    <button id="checkinBtn"
+      class="w-full bg-blue-600 text-white p-3 rounded font-bold">
+      CHECK-IN
+    </button>
+
+  </div>
+</div>
+
+<!-- ✅ IndexedDB Script -->
 <script>
-document.getElementById('save').onclick=async()=>{
-let data={type:'checkin',time:new Date().toISOString()};
-document.querySelectorAll('input').forEach(i=>data[i.placeholder]=i.value);
-await saveRecord(data);localStorage.setItem('session',JSON.stringify(data));
-location='dashboard.html';}
-</script></body></html>
+const DB_NAME = "ITStoreDB";
+const STORE_NAME = "records";
+
+// Open DB
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onupgradeneeded = function (e) {
+      e.target.result.createObjectStore(STORE_NAME, {
+        keyPath: "id",
+        autoIncrement: true
+      });
+    };
+
+    request.onsuccess = function () {
+      resolve(request.result);
+    };
+
+    request.onerror = function () {
+      reject(request.error);
+    };
+  });
+}
+
+// Save Data
+async function saveRecord(data) {
+  const db = await openDB();
+  const tx = db.transaction(STORE_NAME, "readwrite");
+  tx.objectStore(STORE_NAME).add(data);
+}
+</script>
+
+<!-- ✅ Button Logic -->
+<script>
+document.getElementById("checkinBtn").addEventListener("click", async () => {
+
+  const data = {
+    type: "engineer_checkin",
+    name: document.getElementById("name").value,
+    empId: document.getElementById("empId").value,
+    city: document.getElementById("city").value,
+    store: document.getElementById("store").value,
+    project: document.getElementById("project").value,
+    timestamp: new Date().toISOString()
+  };
+
+  // Simple validation
+  if (!data.name || !data.empId) {
+    alert("Please fill required fields");
+    return;
+  }
+
+  // Save to IndexedDB
+  await saveRecord(data);
+
+  // Store session (optional)
+  localStorage.setItem("currentSession", JSON.stringify(data));
+
+  // ✅ Redirect to next page
+  window.location.href = "central_dashboard.html";
+
+});
+</script>
+
+</body>
+</html>
