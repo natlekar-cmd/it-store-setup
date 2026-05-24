@@ -59,6 +59,51 @@ function goNext() {
 }
 
 </script>
+<script>
 
+// ✅ Get progress data
+function getProgress() {
+  let sr = JSON.parse(localStorage.getItem("siteReadinessProgress")) || 0;
+  let asset = JSON.parse(localStorage.getItem("assetProgress")) || 0;
+
+  let total = Math.round((sr + asset) / 2);
+
+  return total;
+}
+
+// ✅ Update UI on load
+window.onload = function () {
+
+  const progress = getProgress();
+
+  // Update percentage text
+  document.querySelectorAll("span").forEach(el => {
+    if (el.innerText.includes("%")) {
+      el.innerText = progress + "%";
+    }
+  });
+
+  // Update circular progress
+  const circle = document.getElementById("mainProgress");
+
+  if (circle) {
+    const radius = circle.r.baseVal.value;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (progress / 100) * circumference;
+
+    circle.style.strokeDashoffset = offset;
+  }
+
+  // ✅ Load engineer info
+  const session = JSON.parse(localStorage.getItem("currentSession"));
+
+  if (session) {
+    document.body.innerHTML = document.body.innerHTML
+      .replace("John Doe", session.name || "")
+      .replace("#501 NY", session.store || "");
+  }
+};
+
+</script>
 </body>
 </html>
