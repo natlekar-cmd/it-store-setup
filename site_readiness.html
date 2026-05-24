@@ -38,4 +38,34 @@ document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
 });
 
 </script>
+
+  <script>
+
+// ✅ Calculate Asset Progress
+function calculateAssetProgress() {
+
+  let rows = document.querySelectorAll(".asset-row");
+  let completed = 0;
+
+  rows.forEach(row => {
+    let status = row.innerText.toLowerCase();
+
+    if (status.includes("delivered")) {
+      completed++;
+    }
+  });
+
+  let percent = Math.round((completed / rows.length) * 100);
+
+  localStorage.setItem("assetProgress", percent);
+}
+
+// ✅ Run on load + click
+window.onload = calculateAssetProgress;
+
+document.querySelectorAll(".asset-row").forEach(row => {
+  row.addEventListener("click", calculateAssetProgress);
+});
+
+</script>
 </body></html>
